@@ -82,7 +82,7 @@ hive.metastore.uri=thrift://${CLUSTER_NAME}-m-0.${ZONE}.c.${PROJECT}.internal:90
 If the Spark job is run on dataproc cluster, and the property hive:hive.metastore.uris is already set to thrift endpoints of 3 master nodes, you do not need to change anything when submitting jobs.
 
 If you run Spark from Dataproc on GKE, make sure the dataproc cluster is created with properties:
-```shell
+```
 # For Spark 3.x
 --properties=^#^spark:spark.sql.catalogImplementation=hive#spark:spark.hive.metastore.uris=thrift://${CLUSTER_NAME}-m-0.${ZONE}.c.${PROJECT}.internal:9083,thrift://${CLUSTER_NAME}-m-1.${ZONE}.c.${PROJECT}.internal:9083,thrift://${CLUSTER_NAME}-m-2.${ZONE}.c.${PROJECT}.internal:9083#spark:spark.hive.metastore.warehouse.dir=<WAREHOUSE_DIR>
 
