@@ -75,7 +75,14 @@ qps=${QPS},\
 messagesLimit=10000
 ```
 
-### Create BQ table
+### Create BigQuery table
+For Pubsub topics without schema, the message body will be ingested to the <mark>data</mark> column of the BigQuery table. The data column can be either string or byte.
+Pubsub can also ingest metadata to BigQuery table. Add the following colunns:
+- subscription_name:STRING
+- message_id:STRING
+- publish_time:TIMESTAMP
+- attributes:STRING
+
 ```shell
 bq mk \
 -t \
@@ -124,13 +131,15 @@ x=$(cat wellformed_message.json) && gcloud pubsub topics publish ${PUBSUB_TOPIC_
 --project=${PROJECT} \
 --message="${x}"
 ```
+The message should be published to pubsub successfully.
 
 ### Test publishing a malformed message where a new kv ("fakeKey": "fakeValue") is added on the top
 ```shell
-x=$(cat wellformed_message.json) && gcloud pubsub topics publish ${PUBSUB_TOPIC_WITH_SCHEMA} \
+x=$(cat malformed_message.json) && gcloud pubsub topics publish ${PUBSUB_TOPIC_WITH_SCHEMA} \
 --project=${PROJECT} \
 --message="${x}"
 ```
+Pubsub will deny this message due to unmatched schema
 
 ### Start a dataflow pipeline to generate data
 ```shell
