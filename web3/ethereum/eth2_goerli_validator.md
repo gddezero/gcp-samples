@@ -8,17 +8,17 @@
     - [Run prysm](#run-prysm)
   - [Execution Layer](#execution-layer)
     - [Install geth from binary](#install-geth-from-binary)
-  - [Run geth](#run-geth)
+    - [Run geth](#run-geth)
   - [Validator](#validator)
     - [Install staking deposit cli](#install-staking-deposit-cli)
     - [Generate key pair](#generate-key-pair)
-  - [Import key to consensus](#import-key-to-consensus)
-  - [Deposit 0.0001 GoETH](#deposit-00001-goeth)
-  - [Run validator](#run-validator)
+    - [Import key to consensus](#import-key-to-consensus)
+    - [Deposit 0.0001 GoETH](#deposit-00001-goeth)
+    - [Run validator](#run-validator)
 
 ## Request approval for staking 0.0001 GoETH to become a validator
 32 ETH is required to become a validator. However, requesting faucet on goerli testnet is time consuming (usually takes weeks to reach 32 ETH). There is a shortcut to become a validator with 0.0001 GoETH. Follow the guide below:
-- Join discord server: https://discord.gg/MbBCmGPg
+- Join discord server EthStaker: https://discord.gg/MbBCmGPg
 - Go to #cheap-goerli-validator
 - Run command /cheap-goerli-deposit and follow the instructions to sign a message and whitelist your address
 
@@ -60,7 +60,7 @@ tar -zxvf ${bin}.tar.gz
 mv ${bin} bin
 ```
 
-## Run geth
+### Run geth
 ```shell
 bin/geth --goerli --datadir /data/execution --http --http.api eth,net,engine,admin --authrpc.jwtsecret /data/jwt.hex
 ```
@@ -80,7 +80,7 @@ staking_deposit-cli-76ed782-linux-amd64/deposit new-mnemonic --num_validators=1 
 
 Enter a password to secure validator keystore and Make sure to **write down you mnemonic offline and store it safely**.
 
-## Import key to consensus
+### Import key to consensus
 ```shell
 cd /data/ethereum/consensus/prysm
 ./prysm.sh validator accounts import --keys-dir=/data/validator/validator_keys --prater
@@ -91,7 +91,7 @@ Wallet password:
 Successfully imported 1 accounts, view all of them by running accounts list
 
 
-## Deposit 0.0001 GoETH
+### Deposit 0.0001 GoETH
 - Go to https://goerli.launchpad.ethstaker.cc/en/
 - Copy the `deposit_data-<timestamp>.json` from VM to your local machine
 - Upload your `deposit_data-<timestamp>.json`
@@ -99,7 +99,7 @@ Successfully imported 1 accounts, view all of them by running accounts list
 **Make sure the account is what you applied in discord ethstaker**
 - Follow the instructions to deposit 0.0001 GoETH
 
-## Run validator
+### Run validator
 ```shell
 ./prysm.sh validator --wallet-dir=/data/consensus --prater
 ```
