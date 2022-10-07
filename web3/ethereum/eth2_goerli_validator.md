@@ -1,5 +1,6 @@
 # Running Ethereum Goerli Validator on Google Cloud (debian)
 - [Running Ethereum Goerli Validator on Google Cloud (debian)](#running-ethereum-goerli-validator-on-google-cloud-debian)
+  - [Request approval for staking 0.0001 GoETH to become a validator](#request-approval-for-staking-00001-goeth-to-become-a-validator)
   - [Deploy Virtual Machine](#deploy-virtual-machine)
   - [Consensus layer](#consensus-layer)
     - [Install prysm](#install-prysm)
@@ -14,6 +15,12 @@
   - [Import key to consensus](#import-key-to-consensus)
   - [Deposit 0.0001 GoETH](#deposit-00001-goeth)
   - [Run validator](#run-validator)
+
+## Request approval for staking 0.0001 GoETH to become a validator
+32 ETH is required to become a validator. However, requesting faucet on goerli testnet is time consuming (usually takes weeks to reach 32 ETH). There is a shortcut to become a validator with 0.0001 GoETH. Follow the guide below:
+- Join discord server: https://discord.gg/MbBCmGPg
+- Go to #cheap-goerli-validator
+- Run command /cheap-goerli-deposit and follow the instructions to sign a message and whitelist your address
 
 ## Deploy Virtual Machine
 `<TBD>`
