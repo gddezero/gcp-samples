@@ -1,7 +1,7 @@
 # Dataproc on GKE Quickstart
 
-## Environment variables. 
-### Env variables for Google Cloud. 
+## Environment variables
+### Env variables for Google Cloud
 
 **Change the values of variables to fit in your environment**
 
@@ -44,8 +44,8 @@ export DP_DRIVER_CPU_PLATFORM="AMD Milan"
 export DP_STD_EXEC_POOLNAME=dp-exec-standard
 export DP_STD_EXEC_MACHINE=n2d-standard-2
 export DP_STD_EXEC_CPU_PLATFORM="AMD Milan"
-export DP_STD31_NAMESPACE=spark31-standard
-export DP_STD31_CLUSTER_NAME=gke-spark31-standard
+export DP_STD_NAMESPACE=spark31-standard
+export DP_STD_CLUSTER_NAME=gke-spark31-standard
 gcloud config set project ${PROJECT}
 ```
 
@@ -105,45 +105,53 @@ gcloud container clusters create ${GKE_CLUSTER_NAME} \
 --enable-dataplane-v2
 ```
 
-# create IAM service account for agent, driver and executor
+## Create IAM service account for agent, driver and executor
+```shell
 gcloud iam service-accounts create "${GSA_NAME}" \
 --description "Used by Dataproc agent, driver and executor on GKE workloads."
+```
 
-# bind roles/dataproc.worker to GSA
+## Bind roles/dataproc.worker to GSA
+```shell
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/dataproc.worker \
 --member "serviceAccount:${DP_GSA}"
+```
 
-# [Optional] bind additional roles to GSA if spark need to access gcp services like BigQuery
+## [Optional] Bind additional roles to GSA if spark need to access gcp services like BigQuery
+```shell
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/bigquery.dataEditor \
 --member "serviceAccount:${DP_GSA}"
+```
 
-# bind k8s service account to IAM service account
+## Bind k8s service account to IAM service account
+```shell
 gcloud iam service-accounts add-iam-policy-binding \
 --role=roles/iam.workloadIdentityUser \
---member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD31_NAMESPACE}/agent]" \
+--member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD_NAMESPACE}/agent]" \
 "${DP_GSA}"
 
 gcloud iam service-accounts add-iam-policy-binding \
 --role=roles/iam.workloadIdentityUser \
---member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD31_NAMESPACE}/spark-driver]" \
+--member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD_NAMESPACE}/spark-driver]" \
 "${DP_GSA}"
 
 gcloud iam service-accounts add-iam-policy-binding \
 --role=roles/iam.workloadIdentityUser \
---member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD31_NAMESPACE}/spark-executor]" \
+--member="serviceAccount:${PROJECT}.svc.id.goog[${DP_STD_NAMESPACE}/spark-executor]" \
 "${DP_GSA}"
+```
 
-
-# create dpgke cluster
-gcloud dataproc clusters gke create ${DP_STD31_CLUSTER_NAME} \
+## Create dataproc on GKE cluster
+```shell
+gcloud dataproc clusters gke create ${DP_STD_CLUSTER_NAME} \
 --project=${PROJECT} \
 --region=${REGION} \
 --gke-cluster=${GKE_CLUSTER_NAME} \
 --gke-cluster-location=${REGION} \
 --spark-engine-version=3.1 \
---namespace=${DP_STD31_NAMESPACE} \
+--namespace=${DP_STD_NAMESPACE} \
 --staging-bucket=${DATAPROC_BUCKET} \
 --setup-workload-identity \
 --history-server-cluster=${PHS_CLUSTER_NAME} \
@@ -162,10 +170,10 @@ gcloud dataproc clusters gke create ${DP_STD31_CLUSTER_NAME} \
 --properties="spark:spark.ui.prometheus.enabled=true" \
 --properties="spark:spark.sql.streaming.metricsEnabled=true" \
 --properties="spark:spark.driver.cores=1" \
---properties="spark:spark.driver.memory=4G" \
+--properties="spark:spark.driver.memory=3G" \
 --properties="spark:spark.driver.maxResultSize=2g" \
 --properties="spark:spark.executor.cores=1" \
---properties="spark:spark.executor.memory=4G" \
+--properties="spark:spark.executor.memory=3G" \
 --properties="spark:spark.executor.processTreeMetrics.enabled=true" \
 --properties="spark:spark.checkpoint.compress=true" \
 --properties="spark:spark.metrics.appStatusSource.enabled=true" \
@@ -203,34 +211,51 @@ gcloud dataproc clusters gke create ${DP_STD31_CLUSTER_NAME} \
 --properties="dataproc:dataproc.gke.agent.google-service-account=${DP_GSA}" \
 --properties="dataproc:dataproc.gke.spark.driver.google-service-account=${DP_GSA}" \
 --properties="dataproc:dataproc.gke.spark.executor.google-service-account=${DP_GSA}"
+```
 
-# submit job - Spark Pi
+## Submit job - Spark Pi
+```shell
 gcloud dataproc jobs submit spark \
 --project=${PROJECT} \
 --region=${REGION} \
---cluster=${DP_STD31_CLUSTER_NAME} \
+--cluster=${DP_STD_CLUSTER_NAME} \
 --properties="spark.app.name=SparkPi,spark.dynamicAllocation.maxExecutors=5" \
 --class=org.apache.spark.examples.SparkPi \
 --jars=local:///usr/lib/spark/examples/jars/spark-examples.jar \
--- 1000
+-- 10000
+```
 
-# clean up the environment
-# delete dataproc clusters
-gcloud dataproc clusters delete ${DP_STD31_CLUSTER_NAME} \
+You can open Spark History Server UI to check the status of the job
+- Go to Dataproc UI
+- Click the PHS cluster
+- Go to WEB INTERFACES and click 'Spark History Server'
+
+You can observe auto scaling of the executor node pool of GKE cluster. It will scale out during the job run and scale in after the job is completed. Feel free to run other Spark, pySpark and Spark SQL jobs on this cluster.
+
+## Clean up the environment
+### Delete dataproc clusters
+```shell
+gcloud dataproc clusters delete ${DP_STD_CLUSTER_NAME} \
 --project=${PROJECT} \
 --region=${REGION}
+```
 
+```shell
 gcloud dataproc clusters delete ${PHS_CLUSTER_NAME} \
 --project=${PROJECT} \
 --region=${REGION}
+```
 
-# delete gke cluster
-# if you want to keep the cluster and delete the node pools, then skip this step
+### Delete GKE cluster
+**If you want to keep the cluster and delete the node pools, then skip this step**
+```shell
 gcloud container clusters delete ${GKE_CLUSTER_NAME} \
 --project "${PROJECT}" \
 --region "${REGION}"
+```
 
-# delete gke node pools
+### Delete GKE node pools
+```shell
 gcloud container node-pools delete ${DP_CTRL_POOLNAME} \
 --cluster=${GKE_CLUSTER_NAME} \
 --project=${PROJECT} \
@@ -245,3 +270,4 @@ gcloud container node-pools delete ${DP_STD_EXEC_POOLNAME} \
 --cluster=${GKE_CLUSTER_NAME} \
 --project=${PROJECT} \
 --region=${REGION}
+```
