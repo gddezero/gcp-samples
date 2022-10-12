@@ -50,6 +50,8 @@ gcloud config set project ${PROJECT}
 ```
 
 ## Deply Spark Persistent History Server on Dataproc
+**Make sure the folder gs://${DATAPROC_BUCKET}/phs already exists on GCS.** If not, create the folder from GCP console.
+
 ```shell
 gcloud dataproc clusters create ${PHS_CLUSTER_NAME} \
 --project $PROJECT \
@@ -68,7 +70,15 @@ gcloud dataproc clusters create ${PHS_CLUSTER_NAME} \
 --master-boot-disk-size 100 \
 --master-boot-disk-type pd-ssd \
 --image-version 2.0-debian10 \
---properties "spark:spark.history.fs.logDirectory=gs://${DATAPROC_BUCKET}/phs/*/spark-job-history,mapred:mapreduce.jobhistory.read-only.dir-pattern=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/done"
+--properties "hive:hive.metastore.warehouse.dir=${WAREHOUSE_BUCKET}" \
+--properties "spark:spark.history.fs.gs.outputstream.type=FLUSHABLE_COMPOSITE" \
+--properties "spark:spark.eventLog.dir=gs://${DATAPROC_BUCKET}/phs/${PHS_CLUSTER_NAME}/spark-job-history" \
+--properties "spark:spark.history.fs.logDirectory=gs://${DATAPROC_BUCKET}/phs/*/spark-job-history" \
+--properties "spark:spark.history.custom.executor.log.url.applyIncompleteApplication=false" \
+--properties "spark:spark.history.custom.executor.log.url={{YARN_LOG_SERVER_URL}}/{{NM_HOST}}:{{NM_PORT}}/{{CONTAINER_ID}}/{{CONTAINER_ID}}/{{USER}}/{{FILE_NAME}}" \
+--properties "mapred:mapreduce.jobhistory.read-only.dir-pattern=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/done" \
+--properties "mapred:mapreduce.jobhistory.intermediate-done-dir=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/intermediate-done" \
+--properties "yarn:yarn.nodemanager.remote-app-log-dir=gs://${DATAPROC_BUCKET}/phs/*/yarn-logs"
 ```
 
 ## Deploy GKE cluster
