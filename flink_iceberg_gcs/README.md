@@ -100,8 +100,7 @@ Flink binaries can be found here: https://flink.apache.org/downloads.html
    cp ${FLINK_HOME}/opt/flink-gs-fs-hadoop-${FLINK_VERSION}.0.jar ${FLINK_HOME}/plugins/gs-fs-hadoop/
    ```
 
-3. Install Iceberg runtime for flink
-Iceberg runtime for Flink can be found here: https://repo1.maven.org/maven2/org/apache/iceberg/
+3. Install Iceberg runtime for Flink. Iceberg runtime for Flink can be found here: https://repo1.maven.org/maven2/org/apache/iceberg/
    ```bash
    wget -c https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_VERSION}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_VERSION}-${ICEBERG_VERSION}.jar -C ${FLINK_HOME}/lib
    ```
