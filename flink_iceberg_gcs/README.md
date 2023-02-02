@@ -1,5 +1,7 @@
 # Streaming data to GCS with Flink using iceberg format
 
+Contributed by @DigitalWNZ
+
 Apache Iceberg is an open table format for huge analytic datasets. Iceberg adds tables to compute engines including Google BigLake, Spark, Trino, PrestoDB, Flink, Hive and Impala using a high-performance table format that works just like a SQL table.
 
 Apache Flink is a framework and distributed processing engine for stateful computations over unbounded and bounded data streams.
@@ -128,8 +130,8 @@ Update the following parameters in Flink configuration file: ${FLINK_HOME}/conf/
 
    **Notice it's ` instead of '**
 
-2. Create a init.sql file to initialize the catalog, database and tables.
-We use datagen to generate random data and write to iceberg table on GCS
+2. An init.sql file is created for you to initialize the catalog, database and tables.
+We use datagen to generate random data and write to iceberg table on GCS. Make sure to replace the **warehouse** parameter in line 5.
 
    ```sql
    CREATE CATALOG iceberg_catalog WITH (
@@ -163,14 +165,14 @@ We use datagen to generate random data and write to iceberg table on GCS
    LIKE t_iceberg_test (EXCLUDING ALL);
    ```
 
-3. Start Flink SQL client
+1. Start Flink SQL client
 
    ```bash
    cd ${FLINK_HOME}
    ./bin/sql-client.sh embedded -j ./lib/iceberg-flink-runtime-1.15-1.1.0.jar -i init.sql shell
    ```
 
-4. Stream data to iceberg table on GCS
+2. Stream data to iceberg table on GCS
    
    ```sql
    INSERT INTO t_iceberg_test
