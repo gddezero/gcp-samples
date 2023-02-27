@@ -1,5 +1,5 @@
 # Pubsub BigQuery subscrption guide
-Ingesting Pubsub messages to BigQuery using Pubsub BigQuery subscription. In this demo we will
+Pubsub supports tngesting messages to BigQuery directly using Pubsub BigQuery subscription. In this demo we will
 - Deploy a pipeline from Dataflow template to generate messages and send to Pubsub
 - Deploy 2 kinds of Pubsub topics  
   - Pubsub topic with schema. The messages will be delivered to BigQuery table preseving the Pubsub schema.
