@@ -60,16 +60,17 @@ gcloud compute instances create kafka-vm \
   --service-account=${GSA_FULL} \
   --no-address \
   --shielded-secure-boot \
-  --metadata=startup-script="#! /bin/bash
+  --metadata=startup-script='#! /bin/bash
   apt update
   apt install git docker-compose -y
   git clone https://github.com/gddezero/gcp-samples.git
   cd gcp-samples/kafka_to_bigquery
   gsutil cp simple_udf.js $GCS_DATAFLOW/scripts/
-  export IP=$(ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
+  export IP=$(ip -o route get to 8.8.8.8 | sed -n "s/.*src \([0-9.]\+\).*/\1/p")
+  echo ${IP}
   docker-compose up -d
-  docker run -v gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm bitnami/kafka:2.3.1 bash /script/gen_order.sh
-  "
+  docker run -v /gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm bitnami/kafka:2.3.1 bash /script/gen_order.sh
+  '
 ```
 
 Now a VM is deployed with Kafka broker running. The background running script will generate one message per second. Here is the sample message:
@@ -154,6 +155,15 @@ gcloud dataflow flex-template run ${JOB_ID} \
 bq query --use_legacy_sql=false --project_id=${PROJECT} \
 "select * from ${PROJECT}.crypto.orderbook order by event_time desc limit 20"
 ```
+
+| event_name  | event_time | symbol  | first_update_id | final_update_id |                bids                |                asks                |     dt     |
+|-------------|------------|---------|-----------------|-----------------|------------------------------------|------------------------------------|------------|
+| depthUpdate | 1678194676 | BTCUSDT |             335 |             333 | {"price":"4.7201","quantity":"27"} | {"price":"7.0086","quantity":"16"} | 2023-03-07 |
+| depthUpdate | 1678194675 | BTCUSDT |             334 |             332 | {"price":"9.0755","quantity":"55"} | {"price":"0.2344","quantity":"67"} | 2023-03-07 |
+| depthUpdate | 1678194674 | BTCUSDT |             333 |             331 |  {"price":"0.186","quantity":"66"} | {"price":"9.9133","quantity":"71"} | 2023-03-07 |
+| depthUpdate | 1678194673 | BTCUSDT |             332 |             330 | {"price":"0.3535","quantity":"76"} |   {"price":"7.874","quantity":"6"} | 2023-03-07 |
+| depthUpdate | 1678194672 | BTCUSDT |             331 |             329 |  {"price":"9.0123","quantity":"9"} | {"price":"7.9256","quantity":"50"} | 2023-03-07 |
+| depthUpdate | 1678194671 | BTCUSDT |             330 |             328 | {"price":"1.9524","quantity":"91"} | {"price":"7.9874","quantity":"92"} | 2023-03-07 |
 
 ## Clean up
 
