@@ -4,7 +4,7 @@ This repositry provides code samples and tutorials for Google Cloud services.
 - [Pubsub to BigQuery](pubsub_to_bigquery/README.md)
   A demo of ingesting Pubsub messages to BigQuery using Pubsub BigQuery subscription.
 
-- [Kafka to BigQuery]()
+- [Kafka to BigQuery](kafka_to_bigquery/README.md)
   A demo of ingesting data from Kafka to BigQuery using dataflow template and JavaScript UDF.
 
 - [Kyuubi integration with Dataproc]()

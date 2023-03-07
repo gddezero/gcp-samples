@@ -1,6 +1,6 @@
 # Query Hive table on Google Cloud Storage (GCS) using StarRocks
 
-StarRocks is a next-gen, high-performance analytical data warehouse that enables real-time, multi-dimensional, and highly concurrent data analysis. You can load data into StarRocks table or connect to external catalogs like Hive, Iceberg, Hudi, Delta Lake. This guide shows how to connect to Hive metastore and query data on Google Cloud Storage (GCS)。
+StarRocks is a next-gen, high-performance analytical data warehouse that enables real-time, multi-dimensional, and highly concurrent data analysis. You can load data into StarRocks table or connect to external catalogs like Hive, Iceberg, Hudi, Delta Lake. This guide shows how to connect to Hive metastore and query data on Google Cloud Storage (GCS) using StarRocks。
 
 **Table of Contents**
 - [Query Hive table on Google Cloud Storage (GCS) using StarRocks](#query-hive-table-on-google-cloud-storage-gcs-using-starrocks)
