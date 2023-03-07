@@ -62,13 +62,13 @@ gcloud compute instances create kafka-vm \
   --shielded-secure-boot \
   --metadata=startup-script="#! /bin/bash
   apt update
-  apt install git docker-compose wget -y
+  apt install git docker-compose -y
   git clone https://github.com/gddezero/gcp-samples.git
   cd gcp-samples/kafka_to_bigquery
   gsutil cp simple_udf.js $GCS_DATAFLOW/scripts/
-  export IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
+  export IP=$(ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
   docker-compose up -d
-  docker run -v /root/gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm  bitnami/kafka:2.3.1 bash /script/gen_order.sh
+  docker run -v gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm bitnami/kafka:2.3.1 bash /script/gen_order.sh
   "
 ```
 

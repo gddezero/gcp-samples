@@ -1,4 +1,4 @@
-$KAFKA_HOME/bin/kafka-topics.sh --create --topic orderbook --replication-factor 1 --partitions 1 --bootstrap-server broker:9093
+$KAFKA_HOME/bin/kafka-topics.sh --create --topic orderbook --replication-factor 1 --partitions 1 --bootstrap-server localhost:9093
 $KAFKA_HOME/bin/kafka-topics.sh --create --topic orderbook_okx --replication-factor 1 --partitions 1 --bootstrap-server localhost:9093
 
 for x in {1..3600}
