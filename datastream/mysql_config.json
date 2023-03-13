@@ -1,0 +1,8 @@
+{
+  "exclude_objects": {},
+  "include_objects":  {
+    "mysql_databases": [
+        {"database":"asset"}
+      ]
+    }
+}

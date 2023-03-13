@@ -1,0 +1,9 @@
+{
+  "source_hierarchy_datasets": {
+    "dataset_template": {
+      "location": "us-central1",
+      "dataset_id_prefix": "ds_"
+    }
+  },
+  "data_freshness": "60s"
+}

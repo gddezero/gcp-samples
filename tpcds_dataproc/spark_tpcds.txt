@@ -1,0 +1,278 @@
+# gcp env
+export CLUSTER_NAME=dataproc-for-forrest-tpcds-no-hdfs-33
+export PROJECT=transsion-poc-2022
+export PROJECT_NUMBER=49133816376
+export REGION=europe-west4
+export NETWORK=default
+export DATAPROC_BUCKET=transsion-poc-tpcds
+export DEFAULTFS_BUCKET=transsion-poc-defautfs
+export DPMS_NAME=do-not-delete-tpc
+gcloud config set project ${PROJECT}
+
+# create dpms
+gcloud metastore services create ${DPMS_NAME} \
+--location=${REGION} \
+--hive-metastore-version=3.1.2 \
+--tier=developer \
+--network=${NETWORK} \
+--hive-metastore-configs="hive.metastore.warehouse.dir=gs://${DATAPROC_BUCKET}/data"
+
+# create dataproc cluster
+gcloud dataproc clusters create ${CLUSTER_NAME} \
+--project ${PROJECT} \
+--bucket ${DATAPROC_BUCKET} \
+--region ${REGION} \
+--network ${NETWORK} \
+--dataproc-metastore=projects/${PROJECT}/locations/${REGION}/services/${DPMS_NAME} \
+--no-address \
+--scopes cloud-platform \
+--enable-component-gateway \
+--num-masters 1 \
+--num-workers 2 \
+--num-secondary-workers 0 \
+--master-machine-type n2d-highmem-4 \
+--master-min-cpu-platform "AMD Milan" \
+--master-boot-disk-type pd-balanced \
+--master-boot-disk-size 300GB \
+--image-version 2.0-debian10 \
+--worker-machine-type n2d-highmem-8 \
+--worker-min-cpu-platform "AMD Milan" \
+--worker-boot-disk-type pd-balanced \
+--worker-boot-disk-size 30GB \
+--secondary-worker-type spot \
+--secondary-worker-boot-disk-type=pd-balanced \
+--worker-boot-disk-size 30GB \
+--properties "core:fs.gs.performance.cache.enable=true" \
+--properties "hive:yarn.log-aggregation-enable=true" \
+--properties "spark:spark.checkpoint.compress=true" \
+--properties "spark:spark.eventLog.compress=true" \
+--properties "spark:spark.eventLog.compression.codec=zstd" \
+--properties "spark:spark.eventLog.rolling.enabled=true" \
+--properties "dataproc:dataproc.components.deactivate=hdfs" \
+--properties "core:fs.defaultFS=gs://${DEFAULTFS_BUCKET}"
+
+# create dataproc 2.1 cluster
+gcloud dataproc clusters create ${CLUSTER_NAME} \
+--project ${PROJECT} \
+--bucket ${DATAPROC_BUCKET} \
+--region ${REGION} \
+--network ${NETWORK} \
+--dataproc-metastore=projects/${PROJECT}/locations/${REGION}/services/${DPMS_NAME} \
+--no-address \
+--scopes cloud-platform \
+--enable-component-gateway \
+--num-masters 1 \
+--num-workers 2 \
+--num-secondary-workers 0 \
+--master-machine-type n2d-highmem-4 \
+--master-min-cpu-platform "AMD Milan" \
+--master-boot-disk-type pd-balanced \
+--master-boot-disk-size 300GB \
+--image-version 2.1-debian11 \
+--worker-machine-type n2d-highmem-16 \
+--worker-min-cpu-platform "AMD Milan" \
+--worker-boot-disk-type pd-balanced \
+--worker-boot-disk-size 1024GB \
+--secondary-worker-type spot \
+--secondary-worker-boot-disk-type=pd-balanced \
+--worker-boot-disk-size 1024GB \
+--properties "core:fs.gs.performance.cache.enable=true" \
+--properties "hive:yarn.log-aggregation-enable=true" \
+--properties "spark:spark.checkpoint.compress=true" \
+--properties "spark:spark.eventLog.compress=true" \
+--properties "spark:spark.eventLog.compression.codec=zstd" \
+--properties "spark:spark.eventLog.rolling.enabled=true" \
+--properties "spark:spark.io.compression.codec=zstd" \
+--properties "spark:spark.sql.optimizer.runtime.bloomFilter.enabled=true" \
+--properties "spark:spark.sql.optimizer.runtime.bloomFilter.creationSideThreshold=200m" \
+--properties "dataproc:dataproc.components.deactivate=hdfs" \
+--properties "core:fs.defaultFS=gs://${DEFAULTFS_BUCKET}"
+
+
+# copy jar
+gsutil cp gs://dataproc-temp-europe-west4-864247530067-d7dufvcb/00001/tpcds/spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar .
+gsutil cp gs://dataproc-temp-europe-west4-864247530067-d7dufvcb/00001/tpcds/tpcds.scala .
+sudo apt install htop iftop sysstat tmux -y
+gsutil cp gs://dataproc-temp-europe-west4-864247530067-d7dufvcb/00001/tpcds/tpcds_test_tpcds.tgz .
+tar -zxvf tpcds_test_tpcds.tgz
+mkdir result
+
+# run test
+spark-shell \
+--jars spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar \
+--executor-memory 18971M \
+--executor-cores 4 \
+--driver-memory 8192M \
+--deploy-mode client \
+--master yarn \
+--num-executors 10 \
+--conf spark.dynamicAllocation.enabled=false \
+-I tpcds.scala
+
+
+# create emr cluster
+aws emr create-cluster \
+--name emr-for-forrest-tpcds \
+--region eu-west-1
+--termination-protected \
+--applications Name=Hadoop Name=Hive Name=Spark \
+--auto-scaling-role EMR_AutoScaling_DefaultRole \
+--ebs-root-volume-size 10 \
+--service-role EMR_DefaultRole \
+--enable-debugging \
+--scale-down-behavior TERMINATE_AT_TASK_COMPLETION \
+--release-label emr-6.5.0 \
+--log-uri 's3n://aws-logs-589507073726-eu-west-1/elasticmapreduce/' \
+--ec2-attributes '{"InstanceProfile":"EMR_EC2_DefaultRole","SubnetId":"subnet-0199eab7fda095c7c","EmrManagedSlaveSecurityGroup":"sg-04d54ca581c44e40b","EmrManagedMasterSecurityGroup":"sg-0ce4f8f92a1b665f9"}' \
+--instance-groups '[{"InstanceCount":2,"BidPrice":"OnDemandPrice","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":32,"VolumeType":"gp2"},"VolumesPerInstance":2}]},"InstanceGroupType":"CORE","InstanceType":"m5.xlarge","Name":"Core - 2"},{"InstanceCount":1,"EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":32,"VolumeType":"gp2"},"VolumesPerInstance":2}]},"InstanceGroupType":"MASTER","InstanceType":"m5.xlarge","Name":"Master - 1"}]' \
+--configurations '[{"Classification":"hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}},{"Classification":"spark-hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}}]' \
+
+# Generate data
+chmod 400 /Users/maxwellx/Documents/work/aws/emr.pem
+ssh -i /Users/maxwellx/Documents/work/aws/emr.pem ec2-user@ec2-3-252-147-34.eu-west-1.compute.amazonaws.com
+ssh -i /Users/maxwellx/Documents/work/aws/emr.pem ec2-user@ec2-34-245-150-33.eu-west-1.compute.amazonaws.com
+ssh -i /Users/maxwellx/Documents/work/aws/emr.pem ec2-user@ec2-52-50-218-255.eu-west-1.compute.amazonaws.com
+
+aws s3 cp s3://k2-tpcds/tpcds_test_tpcds.tgz .
+aws s3 cp s3://k2-tpcds/tpcds.scala .
+sudo yum install htop iftop sysstat tmux -y
+tar -zxvf tpcds_test_tpcds.tgz
+cp tpcds/spark-sql-perf/target/scala-2.12/spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar .
+mkdir result
+
+build/sbt "test:runMain com.databricks.spark.sql.perf.tpcds.GenTPCDSData -d /home/ec2-user/tpcds/tpcds-kit -s 100 -l /tmp/tpcds-100 -f parquet -p"
+
+# scala code
+import com.databricks.spark.sql.perf.tpcds.TPCDSTables
+
+val rootDir = "s3://k2-tpcds/100"
+val dsdgenDir = "/home/hadoop/tpcds/tpcds-kit/tools"
+val scaleFactor = "100"
+val format = "parquet"
+val databaseName = "tpcds100g"
+val sqlContext = spark.sqlContext
+
+val tables = new TPCDSTables(sqlContext,
+dsdgenDir = dsdgenDir, 
+scaleFactor = scaleFactor,
+useDoubleForDecimal = true, 
+useStringForDate = true)
+
+tables.genData(
+location = rootDir,
+format = format,
+overwrite = true,
+partitionTables = true, 
+clusterByPartitionColumns = true, 
+filterOutNullPartitionValues = false, 
+tableFilter = "", 
+numPartitions = 1024)
+
+sql(s"create database $databaseName") 
+
+tables.createExternalTables(rootDir, 
+format, 
+databaseName, 
+overwrite = true, 
+discoverPartitions = true)
+
+tables.analyzeTables(databaseName, analyzeColumns = true)
+
+# run datagen
+spark-shell --jars spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar -I datagen.scala
+
+# run test
+spark-shell \
+--jars spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar \
+--executor-memory 18971M \
+--executor-cores 4 \
+--driver-memory 8192M \
+--deploy-mode client \
+--master yarn \
+--num-executors 10 \
+--conf spark.dynamicAllocation.enabled=false \
+-I tpcds.scala
+
+# run test with dra
+spark-shell \
+--jars spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar \
+--executor-memory 18971M \
+--executor-cores 4 \
+--driver-memory 2048M \
+--deploy-mode client \
+--master yarn \
+--conf spark.dynamicAllocation.maxExecutors=64 \
+-I tpcds.scala
+
+# emr managed scaling
+aws emr put-managed-scaling-policy --cluster-id j-25H5QJMOGWNRH --managed-scaling-policy ComputeLimits='{MinimumCapacityUnits=16, MaximumCapacityUnits=256,MaximumOnDemandCapacityUnits=64,MaximumCoreCapacityUnits=16,UnitType=VCPU}'
+
+
+
+hdfs dfsadmin -refreshNodes
+
+/home/maxwellx/result
+/home/maxwellx/result/timestamp=1669161225360    
+
+hdfs dfs -cp /home/maxwellx/result/timestamp=1669161225360/part-00000-53674c62-8c92-4c44-a7ce-5a1ad8c8ab43-c000.json gs://dataproc-temp-europe-west4-864247530067-d7dufvcb/00001/tpcds/result/
+
+hdfs dfs -cp /home/hadoop/result/timestamp=1669162124434/part-00000-893a8d1a-f01d-4d97-a0d2-91ff3cc089da-c000.json s3://k2-tpcds/part-00000-893a8d1a-f01d-4d97-a0d2-91ff3cc089da-c000.json
+
+
+22/11/22 09:20:18 WARN org.apache.spark.sql.execution.adaptive.InsertAdaptiveSparkPlan: spark.sql.adaptive.enabled is enabled but is not supported for query: TakeOrderedAndProject(limit=100, orderBy=[s_store_name#57 ASC NULLS FIRST], output=[s_store_name#57,sum(ss_net_profit)#8387])
++- HashAggregate(keys=[s_store_name#57], functions=[sum(ss_net_profit#308)], output=[s_store_name#57, sum(ss_net_profit)#8387])
+   +- HashAggregate(keys=[s_store_name#57], functions=[partial_sum(ss_net_profit#308)], output=[s_store_name#57, sum#8398])
+      +- Project [ss_net_profit#308, s_store_name#57]
+         +- BroadcastHashJoin [substr(s_zip#77, 1, 2)], [substr(ca_zip#8377, 1, 2)], Inner, BuildRight, false
+            :- Project [ss_net_profit#308, s_store_name#57, s_zip#77]
+            :  +- BroadcastHashJoin [ss_store_sk#293], [s_store_sk#52], Inner, BuildRight, false
+            :     :- Project [ss_store_sk#293, ss_net_profit#308]
+            :     :  +- BroadcastHashJoin [ss_sold_date_sk#309], [d_date_sk#24], Inner, BuildRight, false
+            :     :     :- Project [ss_store_sk#293, ss_net_profit#308, ss_sold_date_sk#309]
+            :     :     :  +- Filter isnotnull(ss_store_sk#293)
+            :     :     :     +- FileScan parquet tpcds100g.store_sales[ss_store_sk#293,ss_net_profit#308,ss_sold_date_sk#309] Batched: true, DataFilters: [isnotnull(ss_store_sk#293)], Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/store_sales/ss_sold_da..., PartitionFilters: [isnotnull(ss_sold_date_sk#309), dynamicpruning#8396 [ss_sold_date_sk#309]], PushedFilters: [IsNotNull(ss_store_sk)], ReadSchema: struct<ss_store_sk:int,ss_net_profit:double>
+            :     :     :           +- Project [d_date_sk#24]
+            :     :     :              +- Filter ((((isnotnull(d_qoy#34) AND isnotnull(d_year#30)) AND (d_qoy#34 = 2)) AND (d_year#30 = 1998)) AND isnotnull(d_date_sk#24))
+            :     :     :                 +- Relation[d_date_sk#24,d_date_id#25,d_date#26,d_month_seq#27,d_week_seq#28,d_quarter_seq#29,d_year#30,d_dow#31,d_moy#32,d_dom#33,d_qoy#34,d_fy_year#35,d_fy_quarter_seq#36,d_fy_week_seq#37,d_day_name#38,d_quarter_name#39,d_holiday#40,d_weekend#41,d_following_holiday#42,d_first_dom#43,d_last_dom#44,d_same_day_ly#45,d_same_day_lq#46,d_current_day#47,... 4 more fields] parquet
+            :     :     +- Project [d_date_sk#24]
+            :     :        +- Filter ((((isnotnull(d_qoy#34) AND isnotnull(d_year#30)) AND (d_qoy#34 = 2)) AND (d_year#30 = 1998)) AND isnotnull(d_date_sk#24))
+            :     :           +- FileScan parquet tpcds100g.date_dim[d_date_sk#24,d_year#30,d_qoy#34] Batched: true, DataFilters: [isnotnull(d_qoy#34), isnotnull(d_year#30), (d_qoy#34 = 2), (d_year#30 = 1998), isnotnull(d_date_..., Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/date_dim], PartitionFilters: [], PushedFilters: [IsNotNull(d_qoy), IsNotNull(d_year), EqualTo(d_qoy,2), EqualTo(d_year,1998), IsNotNull(d_date_sk)], ReadSchema: struct<d_date_sk:int,d_year:int,d_qoy:int>
+            :     +- Project [s_store_sk#52, s_store_name#57, s_zip#77]
+            :        +- Filter (isnotnull(s_store_sk#52) AND isnotnull(s_zip#77))
+            :           +- FileScan parquet tpcds100g.store[s_store_sk#52,s_store_name#57,s_zip#77] Batched: true, DataFilters: [isnotnull(s_store_sk#52), isnotnull(s_zip#77)], Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/store], PartitionFilters: [], PushedFilters: [IsNotNull(s_store_sk), IsNotNull(s_zip)], ReadSchema: struct<s_store_sk:int,s_store_name:string,s_zip:string>
+            +- HashAggregate(keys=[ca_zip#8377], functions=[], output=[ca_zip#8377])
+               +- HashAggregate(keys=[ca_zip#8377], functions=[], output=[ca_zip#8377])
+                  +- Project [substr(ca_zip#641, 1, 5) AS ca_zip#8377]
+                     +- SortMergeJoin [coalesce(substr(ca_zip#641, 1, 5), ), isnull(substr(ca_zip#641, 1, 5))], [coalesce(ca_zip#8378, ), isnull(ca_zip#8378)], LeftSemi
+                        :- Filter (substr(ca_zip#641, 1, 5) INSET (56910,69952,63792,39371,74351,11101,25003,97189,57834,73134,62377,51200,32754,22752,86379,14171,91110,40162,98569,28709,13394,66162,25733,25782,26065,18383,51949,87343,50298,83849,33786,64528,23470,67030,46136,25280,46820,77721,99076,18426,31880,17871,98235,45748,49156,18652,72013,51622,43848,78567,41248,13695,44165,67853,54917,53179,64034,10567,71791,68908,55565,59402,64147,85816,57855,61547,27700,68100,28810,58263,15723,83933,51103,58058,90578,82276,81096,81426,96451,77556,38607,76638,18906,62971,57047,48425,35576,11928,30625,83444,73520,51650,57647,60099,30122,94983,24128,10445,41368,26233,26859,21756,24676,19849,36420,38193,58470,39127,13595,87501,24317,15455,69399,98025,81019,48033,11376,39516,67875,92712,14867,38122,29741,42961,30469,51211,56458,15559,16021,33123,33282,33515,72823,54601,76698,56240,72175,60279,20004,68806,72325,28488,43933,50412,45200,22246,78668,79777,96765,67301,73273,49448,82636,23932,47305,29839,39192,18799,61265,37125,58943,64457,88424,24610,84935,89360,68893,30431,28898,10336,90257,59166,46081,26105,96888,36634,86284,35258,39972,22927,73241,53268,24206,27385,99543,31671,14663,30903,39861,24996,63089,88086,83921,21076,67897,66708,45721,60576,25103,52867,30450,36233,30010,96576,73171,56571,56575,64544,13955,78451,43285,18119,16725,83041,76107,79994,54364,35942,56691,19769,63435,34102,18845,22744,13354,75691,45549,23968,31387,83144,13375,15765,28577,88190,19736,73650,37930,25989,83926,94898,51798,39736,22437,55253,38415,71256,18376,42029,25858,44438,19515,38935,51649,71954,15882,18767,63193,25486,49130,37126,40604,34425,17043,12305,11634,26653,94167,36446,10516,67473,66864,72425,63981,18842,22461,42666,47770,69035,70372,28587,45266,15371,15798,45375,90225,16807,31016,68014,21337,19505,50016,10144,84093,21286,19430,34322,91068,94945,72305,24671,58048,65084,28545,21195,20548,22245,77191,96976,48583,76231,15734,61810,11356,68621,68786,98359,41367,26689,69913,76614,68101,88885,50308,79077,18270,28915,29178,53672,62878,10390,14922,68341,56529,41766,68309,56616,15126,61860,97789,11489,45692,41918,72151,72550,27156,36495,70738,17879,53535,17920,68880,78890,35850,14089,58078,65164,27068,26231,13376,57665,32213,77610,87816,21309,15146,86198,91137,55307,67467,40558,94627,82136,22351,89091,20260,23006,91393,47537,62496,98294,18840,71286,81312,31029,70466,35458,14060,22685,28286,25631,19512,40081,63837,14328,35474,22152,76232,51061,86057,17183) AND isnotnull(substr(ca_zip#641, 1, 5)))
+                        :  +- FileScan parquet tpcds100g.customer_address[ca_zip#641] Batched: true, DataFilters: [substr(ca_zip#641, 1, 5) INSET (56910,69952,63792,39371,74351,11101,25003,97189,57834,73134,6237..., Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/customer_address], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<ca_zip:string>
+                        +- Project [ca_zip#8378]
+                           +- Filter (count(1)#8383L > 10)
+                              +- HashAggregate(keys=[ca_zip#641], functions=[count(1)], output=[ca_zip#8378, count(1)#8383L])
+                                 +- HashAggregate(keys=[ca_zip#641], functions=[partial_count(1)], output=[ca_zip#641, count#8400L])
+                                    +- Project [ca_zip#641]
+                                       +- BroadcastHashJoin [ca_address_sk#632], [c_current_addr_sk#85], Inner, BuildLeft, false
+                                          :- Project [ca_address_sk#632, ca_zip#641]
+                                          :  +- Filter isnotnull(ca_address_sk#632)
+                                          :     +- FileScan parquet tpcds100g.customer_address[ca_address_sk#632,ca_zip#641] Batched: true, DataFilters: [isnotnull(ca_address_sk#632)], Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/customer_address], PartitionFilters: [], PushedFilters: [IsNotNull(ca_address_sk)], ReadSchema: struct<ca_address_sk:int,ca_zip:string>
+                                          +- Project [c_current_addr_sk#85]
+                                             +- Filter ((isnotnull(c_preferred_cust_flag#91) AND (c_preferred_cust_flag#91 = Y)) AND isnotnull(c_current_addr_sk#85))
+                                                +- FileScan parquet tpcds100g.customer[c_current_addr_sk#85,c_preferred_cust_flag#91] Batched: true, DataFilters: [isnotnull(c_preferred_cust_flag#91), (c_preferred_cust_flag#91 = Y), isnotnull(c_current_addr_sk..., Format: Parquet, Location: InMemoryFileIndex[gs://transsion-poc-dataproc-bucket01/tpcds_test/data100g/customer], PartitionFilters: [], PushedFilters: [IsNotNull(c_preferred_cust_flag), EqualTo(c_preferred_cust_flag,Y), IsNotNull(c_current_addr_sk)], ReadSchema: struct<c_current_addr_sk:int,c_preferred_cust_flag:string>
+.
+Execution time: 3.456932281s  
+
+
+
+
+# single query
+
+spark-sql \
+-f q9.sql \
+--executor-memory 18971M \
+--executor-cores 4 \
+--driver-memory 2048M \
+--deploy-mode client \
+--master yarn \
+--num-executors 10 \
+--conf "spark.dynamicAllocation.enabled=false" \
+--conf "spark.sql.optimizer.flattenScalarSubqueriesWithAggregates.enabled=false"                                             
