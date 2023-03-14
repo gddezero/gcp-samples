@@ -19,9 +19,9 @@ format = format,
 overwrite = true,
 partitionTables = true, 
 clusterByPartitionColumns = true, 
-filterOutNullPartitionValues = false, 
+filterOutNullPartitionValues = true, 
 tableFilter = "", 
-numPartitions = 1024)
+numPartitions = 100)
 
 sql(s"create database $databaseName") 
 

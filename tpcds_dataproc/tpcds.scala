@@ -16,3 +16,8 @@ val experiment = tpcds.runExperiment(
   resultLocation = resultLocation,
   forkThread = true)
 experiment.waitForFinish(timeout)
+// Result:
+experiment.getCurrentResults
+  .withColumn("Name", substring(col("name"), 2, 100))
+  .withColumn("Runtime", (col("parsingTime") + col("analysisTime") + col("optimizationTime") + col("planningTime") + col("executionTime")) / 1000.0)
+  .select('Name, 'Runtime)

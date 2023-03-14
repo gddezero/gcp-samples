@@ -68,7 +68,9 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --properties "spark:spark.checkpoint.compress=true" \
   --properties "spark:spark.eventLog.compress=true" \
   --properties "spark:spark.eventLog.compression.codec=zstd" \
-  --properties "spark:spark.eventLog.rolling.enabled=true"
+  --properties "spark:spark.eventLog.rolling.enabled=true" \
+  --properties "spark:spark.io.compression.codec=zstd" \
+  --properties "spark.sql.parquet.compression.codec=zstd" 
 ```
 
 ## Generate TPC-DS 1000 data
@@ -89,7 +91,7 @@ Also change the the value of variable `databaseName` in tpcds.scala
 
 ## Run TPC-DS 1000 tests
 
-After TPC-DS data is generated, run the following command to . Suggest to run the following command in tmux or screen session because it takes several minitues to hours to generate TPC-DS 1000 data
+After TPC-DS data is generated, run the following command to run tests. Suggest to run in tmux or screen session because it takes several minitues to hours to run TPC-DS tests depending on number of executors. Please change `num-executors` according to your worker vcores.
 
 ```bash
 cd /opt/gcp-samples/tpcds_dataproc
