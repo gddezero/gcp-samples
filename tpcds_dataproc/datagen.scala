@@ -1,6 +1,6 @@
 import com.databricks.spark.sql.perf.tpcds.TPCDSTables
 
-val rootDir = "gs://forrest-bigdata-bucket/dw/tpcds1000"
+val rootDir = "gs://DW_BUCKET/dw/tpcds1000"
 val dsdgenDir = "/opt/gcp-samples/tpcds_dataproc/tpcds-kit/tools"
 val scaleFactor = "1000"
 val format = "parquet"
