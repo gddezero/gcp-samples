@@ -1,5 +1,5 @@
 #!/bin/bash
-
+apt install wget tmux -y
 cd /opt
 git clone https://github.com/gddezero/gcp-samples.git
 cd gcp-samples/tpcds_dataproc

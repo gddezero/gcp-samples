@@ -12,9 +12,9 @@ The demo is delivered in **Linux Shell** scripts. You can start a **Cloud Shell*
 ```bash
 export CLUSTER_NAME=tpc-ds-cluster
 export PROJECT=forrest-test-project-333203
-export PROJECT_NUMBER=49133816376
 export REGION=us-central1
 export NETWORK=bigdata-network
+export SUBNET=dataflow-network
 export DATAPROC_BUCKET=forrest-dataproc-bucket
 export DW_BUCKET=forrest-bigdata-bucket
 export DPMS_NAME=hms
@@ -30,19 +30,19 @@ gcloud metastore services create ${DPMS_NAME} \
   --hive-metastore-version=3.1.2 \
   --tier=developer \
   --network=${NETWORK} \
-  --hive-metastore-configs="hive.metastore.warehouse.dir=gs://${DATAPROC_BUCKET}/dw"
+  --hive-metastore-configs="hive.metastore.warehouse.dir=gs://${DW_BUCKET}/dw"
 ```
 
 ## Create dataproc cluster
 ```bash
 git clone https://github.com/gddezero/gcp-samples.git
-gsutil cp gcp-samples/tpcds_dataproc/tpcds_bootstrap.sh gs://${DATAPROC_BUCKET}/bootstrap
+gsutil cp gcp-samples/tpcds_dataproc/tpcds_bootstrap.sh gs://${DATAPROC_BUCKET}/bootstrap/
 
 gcloud dataproc clusters create ${CLUSTER_NAME} \
   --project ${PROJECT} \
   --bucket ${DATAPROC_BUCKET} \
   --region ${REGION} \
-  --network ${NETWORK} \
+  --subnet ${SUBNET} \
   --dataproc-metastore=projects/${PROJECT}/locations/${REGION}/services/${DPMS_NAME} \
   --no-address \
   --scopes cloud-platform \
@@ -54,7 +54,7 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --master-min-cpu-platform "AMD Milan" \
   --master-boot-disk-type pd-balanced \
   --master-boot-disk-size 300GB \
-  --image-version 2.1-debian10 \
+  --image-version 2.1-debian11 \
   --worker-machine-type n2d-highmem-8 \
   --worker-min-cpu-platform "AMD Milan" \
   --worker-boot-disk-type pd-balanced \
@@ -68,7 +68,7 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --properties "spark:spark.checkpoint.compress=true" \
   --properties "spark:spark.eventLog.compress=true" \
   --properties "spark:spark.eventLog.compression.codec=zstd" \
-  --properties "spark:spark.eventLog.rolling.enabled=true" \
+  --properties "spark:spark.eventLog.rolling.enabled=true"
 ```
 
 ## Generate TPC-DS 1000 data
