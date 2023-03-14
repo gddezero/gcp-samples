@@ -70,7 +70,7 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --properties "spark:spark.eventLog.compression.codec=zstd" \
   --properties "spark:spark.eventLog.rolling.enabled=true" \
   --properties "spark:spark.io.compression.codec=zstd" \
-  --properties "spark.sql.parquet.compression.codec=zstd" 
+  --properties "spark:spark.sql.parquet.compression.codec=zstd" 
 ```
 
 ## Generate TPC-DS 1000 data
