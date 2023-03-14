@@ -58,10 +58,10 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --worker-machine-type n2d-highmem-8 \
   --worker-min-cpu-platform "AMD Milan" \
   --worker-boot-disk-type pd-balanced \
-  --worker-boot-disk-size 30GB \
+  --worker-boot-disk-size 300GB \
   --secondary-worker-type spot \
   --secondary-worker-boot-disk-type pd-balanced \
-  --worker-boot-disk-size 30GB \
+  --worker-boot-disk-size 300GB \
   --initialization-actions gs://${DATAPROC_BUCKET}/bootstrap/tpcds_bootstrap.sh \
   --metadata DW_BUCKET=${DW_BUCKET} \
   --properties "hive:yarn.log-aggregation-enable=true" \
