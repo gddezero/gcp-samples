@@ -36,7 +36,7 @@ gcloud metastore services create ${DPMS_NAME} \
 ## Create dataproc cluster
 ```bash
 git clone https://github.com/gddezero/gcp-samples.git
-gsutil cp gcp-samples.git/tpcds_dataproc/tpcds_bootstrap.sh gs://${DATAPROC_BUCKET}/bootstrap
+gsutil cp gcp-samples/tpcds_dataproc/tpcds_bootstrap.sh gs://${DATAPROC_BUCKET}/bootstrap
 
 gcloud dataproc clusters create ${CLUSTER_NAME} \
   --project ${PROJECT} \
