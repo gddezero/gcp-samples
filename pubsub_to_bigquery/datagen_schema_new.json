@@ -1,0 +1,22 @@
+{
+    "clientId": "{{uuid("false")}}",
+    "fullVisitorId": "{{uuid("false")}}",
+    "browser": "{{random("AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1", "Chrome/51.0.2704.103 Safari/537.36", "Opera/9.80 (Macintosh; Intel Mac OS X; U; en) Presto/2.2.15 ")}}",
+    "ip": "{{ipv4()}}",
+    "ts": {{timestamp()}},
+    "pid": "{{alphaNumeric(64)}}",
+    "tags": ['{{repeat(1,5)}}', "{{lorem(1,"words")}}"],
+    "device": {
+      "screenResolution": "{{random("1440x900", "1920x1080", "3840x2160")}}", 
+      "operatingSystem": "{{random("Apple iOS", "MacOS", "Android", "Windows")}}",
+      "version": "{{concat("v", float(1, 20, "%.2f"))}}"
+    },
+    "visits": [
+        '{{repeat(0,10)}}',
+        {
+            "pageURL": "https://cloud.google.com/{{lorem(1,"words")}}/{{lorem(1,"words")}}",
+            "pageViews": {{integer(1,50)}},
+            "uniquePageViews": {{integer(1,20)}}
+        }
+    ]
+}

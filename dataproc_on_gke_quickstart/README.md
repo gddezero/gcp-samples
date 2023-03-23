@@ -77,8 +77,7 @@ gcloud dataproc clusters create ${PHS_CLUSTER_NAME} \
 --properties "spark:spark.history.custom.executor.log.url.applyIncompleteApplication=false" \
 --properties "spark:spark.history.custom.executor.log.url={{YARN_LOG_SERVER_URL}}/{{NM_HOST}}:{{NM_PORT}}/{{CONTAINER_ID}}/{{CONTAINER_ID}}/{{USER}}/{{FILE_NAME}}" \
 --properties "mapred:mapreduce.jobhistory.read-only.dir-pattern=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/done" \
---properties "mapred:mapreduce.jobhistory.intermediate-done-dir=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/intermediate-done" \
---properties "yarn:yarn.nodemanager.remote-app-log-dir=gs://${DATAPROC_BUCKET}/phs/*/yarn-logs"
+--properties "mapred:mapreduce.jobhistory.intermediate-done-dir=gs://${DATAPROC_BUCKET}/phs/*/mapreduce-job-history/intermediate-done"
 ```
 
 ## Deploy GKE cluster

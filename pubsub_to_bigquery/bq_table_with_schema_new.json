@@ -1,0 +1,94 @@
+[
+  {
+    "name": "clientId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "fullVisitorId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "browser",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "ip",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "ts",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "pid",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "tags",
+    "type": "STRING",
+    "mode": "REPEATED"
+  },
+  {
+    "name": "device",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "screenResolution",
+        "type": "STRING"
+      },
+      {
+        "name": "operatingSystem",
+        "type": "STRING"
+      },
+      {
+        "name": "version",
+        "type": "STRING"
+      }
+    ]
+  },
+  {
+    "name": "visits",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "pageURL",
+        "type": "STRING"
+      },
+      {
+        "name": "pageViews",
+        "type": "INTEGER"
+      },
+      {
+        "name": "uniquePageViews",
+        "type": "INTEGER"
+      }
+    ]
+  },
+  {
+    "name": "subscription_name",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "message_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "publish_time",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "attributes",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  }
+]

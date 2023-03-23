@@ -1,6 +1,5 @@
 {
-    "fakeKey": "fakeValue",
-    "clientId": "122911593e3b47a68238358512aebf4b",
+    "clientId": 123,
     "fullVisitorId": "163ad03b1df54a40a1c1d0333dbf0565",
     "browser": "Opera/9.80 (Macintosh; Intel Mac OS X; U; en) Presto/2.2.15 ",
     "ip": "255.205.186.7",

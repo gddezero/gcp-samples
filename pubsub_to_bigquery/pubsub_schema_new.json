@@ -1,0 +1,83 @@
+{
+  "type": "record",
+  "name": "Avro",
+  "fields": [
+    {
+      "name": "clientId",
+      "type": "string"
+    },
+    {
+      "name": "fullVisitorId",
+      "type": "string"
+    },
+    {
+      "name": "browser",
+      "type": "string"
+    },
+    {
+      "name": "ip",
+      "type": "string"
+    },
+    {
+      "name": "ts",
+      "type": "long"
+    },
+    {
+      "name": "pid",
+      "type": "string"
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "device",
+      "type": {
+        "name": "device",
+        "type": "record",
+        "fields": [
+          {
+            "name": "screenResolution",
+            "type": "string"
+          },
+          {
+            "name": "operatingSystem",
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "visits",
+      "type": {
+        "type": "array",
+        "items": {
+          "name": "visits",
+          "type": "record",
+          "fields": [
+            {
+              "name": "pageURL",
+              "type": "string"
+            },
+            {
+              "name": "pageViews",
+              "type": "int"
+            },
+            {
+              "name": "uniquePageViews",
+              "type": "int",
+              "default": 0
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
