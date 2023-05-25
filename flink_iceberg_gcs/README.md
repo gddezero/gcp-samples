@@ -89,8 +89,8 @@ Flink binaries can be found here: https://flink.apache.org/downloads.html
 
    ```bash
    mkdir -p ${FLINK_HOME}
-   wget -c https://archive.apache.org/dist/flink/${FLINK_VERSION}.0/flink-${FLINK_VERSION}.0-bin-scala_2.12.tgz -P /tmp
-   tar -xzf /tmp/flink-${FLINK_VERSION}.0-bin-scala_2.12.tgz -C ${FLINK_HOME}
+   wget -c https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}.3/flink-${FLINK_VERSION}.3-bin-scala_2.12.tgz -P /tmp
+   tar -xzf /tmp/flink-${FLINK_VERSION}.3-bin-scala_2.12.tgz -C ${FLINK_HOME}
    ```
 
 2. Enable GCS support for Flink
@@ -102,7 +102,7 @@ Flink binaries can be found here: https://flink.apache.org/downloads.html
 
 3. Install Iceberg runtime for Flink. Iceberg runtime for Flink can be found here: https://repo1.maven.org/maven2/org/apache/iceberg/
    ```bash
-   wget -c https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_VERSION}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_VERSION}-${ICEBERG_VERSION}.jar -C ${FLINK_HOME}/lib
+   wget -c https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_VERSION}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_VERSION}-${ICEBERG_VERSION}.jar -P ${FLINK_HOME}/lib
    ```
 
 4. Configure Flink

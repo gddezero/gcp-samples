@@ -1,0 +1,5 @@
+org/myorg/quickstart/BatchJob.class
+org/myorg/quickstart/TrafficData.class
+org/myorg/quickstart/StreamingJob.class
+org/myorg/quickstart/StreamingJob$1.class
+org/myorg/quickstart/TrafficData$TrafficDataGenerator.class
