@@ -17,9 +17,9 @@ gsutil cp gs://spark-lib/biglake/biglake-catalog-iceberg${ICEBERG_VERSION}-0.1.0
 
 # Disable ipv6
 cat <<EOF > /etc/sysctl.d/90-disable-ipv6.conf
-sysctl -w net.ipv6.conf.all.disable_ipv6=1
-sysctl -w net.ipv6.conf.default.disable_ipv6=1
-sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+net.ipv6.conf.lo.disable_ipv6=1
 EOF
 sysctl -p -f /etc/sysctl.d/90-disable-ipv6.conf
 
@@ -36,6 +36,7 @@ execution.checkpointing.unaligned: true
 state.backend: hashmap
 state.checkpoints.dir: hdfs:///flink/checkpoints
 state.savepoints.dir: hdfs:///flink/savepoints
+parallelism.default: 1
 EOF
 
 # Create initialization SQL file for Flink

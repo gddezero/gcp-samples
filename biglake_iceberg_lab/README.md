@@ -70,13 +70,13 @@ bq mk --connection --location=us-central1 --project_id=${PROJECT} \
 The BigQuery connection will create a service account which will be used to read data from GCS. You can check the service account using the bq tool:
 
 ```bash
-bq show --connection ${PROJECT_ID}.us-central1.${CONNECTION}
+bq show --connection ${PROJECT}.us-central1.${CONNECTION}
 ```
 
 Assign IAM role to the service account
 
 ```bash
-SA_CONNECTION=$(bq show --connection ${PROJECT_ID}.us-central1.${CONNECTION})
+SA_CONNECTION=$(bq show --format json --connection ${PROJECT}.us-central1.${CONNECTION}|jq -r '.cloudResource.serviceAccountId')
 
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/biglake.admin \
@@ -93,7 +93,7 @@ Clone git repository
 
 ```bash
 git clone https://github.com/gddezero/gcp-samples.git
-cd biglake_iceberg_lab
+cd gcp-samples/biglake_iceberg_lab
 ```
 
 Create Dataproc Cluster

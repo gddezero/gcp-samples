@@ -14,7 +14,7 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
 --subnet ${SUBNET} \
 --bucket ${DATAPROC_BUCKET} \
 --temp-bucket ${DATAPROC_BUCKET} \
---service-account ${SA_NAME}@${PROJECT}iam.gserviceaccount.com \
+--service-account ${SA_NAME}@${PROJECT}.iam.gserviceaccount.com \
 --master-machine-type n2d-highmem-4 \
 --master-boot-disk-size 100 \
 --master-boot-disk-type pd-balanced \
@@ -25,4 +25,4 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
 --metadata DATAPROC_BUCKET=${DATAPROC_BUCKET} \
 --metadata WAREHOUSE_DIR=${WAREHOUSE_DIR} \
 --metadata CONNECTION=${CONNECTION} \
---metadata PROJECT=${PROJECT} \
+--metadata PROJECT=${PROJECT}
