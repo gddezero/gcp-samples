@@ -42,6 +42,7 @@ Create service account:
 
 ```bash
 gcloud iam service-accounts create "${SA_NAME}" \
+--project ${PROJECT} \
 --description "Service account for Dataproc to run flink."
 ```
 
@@ -50,11 +51,11 @@ Bind roles to service account:
 ```bash
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/dataproc.worker \
---member "serviceAccount:${SA}@${PROJECT}iam.gserviceaccount.com"
+--member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/bigquery.connectionAdmin \
---member "serviceAccount:${SA}@${PROJECT}iam.gserviceaccount.com"
+--member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 ```
 
 ### 2. Create BigQuery connection for BigLake table
