@@ -1,20 +1,50 @@
+#!/bin/bash
+
 FLINK_VERSION=1.15
 ICEBERG_VERSION=1.2.0
+PROJECT=$(/usr/share/google/get_metadata_value attributes/PROJECT)
+DATAPROC_BUCKET=$(/usr/share/google/get_metadata_value attributes/DATAPROC_BUCKET)
+WAREHOUSE_DIR=$(/usr/share/google/get_metadata_value attributes/WAREHOUSE_DIR)
+CONNECTION=$(/usr/share/google/get_metadata_value attributes/CONNECTION)
 
+# Install libraries required
 apt install wget -y
-/usr/lib/flink
+cd /usr/lib/flink
 wget -c https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_VERSION}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_VERSION}-${ICEBERG_VERSION}.jar -P lib
 cp /usr/lib/spark/jars/libthrift-0.12.0.jar lib/
 cp /usr/lib/hive/lib/hive-common-3.1.3.jar lib/
 gsutil cp gs://spark-lib/biglake/biglake-catalog-iceberg${ICEBERG_VERSION}-0.1.0-with-dependencies.jar lib/
 
+# Disable ipv6
+cat <<EOF > /etc/sysctl.d/90-disable-ipv6.conf
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+EOF
+sysctl -p -f /etc/sysctl.d/90-disable-ipv6.conf
 
+# Export HADOOP_CLASSPATH
+export HADOOP_CLASSPATH=$(hadoop classpath)
+
+# Config flink-conf.yaml
+cat <<EOF >> conf/flink-conf.yaml
+# user supplied properties
+execution.checkpointing.interval: 1min
+execution.checkpointing.externalized-checkpoint-retention: DELETE_ON_CANCELLATION
+execution.checkpointing.mode: EXACTLY_ONCE
+execution.checkpointing.unaligned: true
+state.backend: hashmap
+state.checkpoints.dir: hdfs:///flink/checkpoints
+state.savepoints.dir: hdfs:///flink/savepoints
+EOF
+
+# Create initialization SQL file for Flink
 cat <<EOF > init.sql
 CREATE CATALOG blms WITH (
  'type'='iceberg',
- 'warehouse'='#WAREHOUSE#',
+ 'warehouse'='${WAREHOUSE_DIR}',
  'catalog-impl'='org.apache.iceberg.gcp.biglake.BigLakeCatalog',
- 'gcp_project'='#PROJECT#',
+ 'gcp_project'='${PROJECT}',
  'gcp_location'='us-central1',
  'blms_catalog'='iceberg'
 );
@@ -45,7 +75,7 @@ WITH (
   'write.metadata.delete-after-commit.enabled'='true',
   'write.metadata.previous-versions-max'='100',
   'bq_table'='iceberg_dataset.orders', 
-  'bq_connection'='projects/#PROJECT#/locations/us-central1/connections/#CONNECTION#');
+  'bq_connection'='projects/${PROJECT}/locations/us-central1/connections/${CONNECTION}');
 
 CREATE OR REPLACE TEMPORARY TABLE orders_gen
 WITH (
@@ -62,7 +92,7 @@ WITH (
 
   'fields.product_id.kind' = 'random',
   'fields.product_id.min' = '1',
-  'fields.product_id.max' = '100',
+  'fields.product_id.max' = '1000',
 
   'fields.price.kind' = 'random',
   'fields.price.min' = '0.01',

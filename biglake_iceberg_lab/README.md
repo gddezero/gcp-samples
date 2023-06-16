@@ -27,15 +27,14 @@ export PROJECT=forrest-test-project-333203
 export SUBNET=dataflow-network
 export CLUSTER_NAME=iceberg-demo-cluster
 export DATAPROC_BUCKET=forrest-dataproc-bucket
+export WAREHOUSE_DIR=gs://my-dw-bucket/iceberg
 export SA_NAME=iceberg-demo
 export CONNECTION=biglake-iceberg
-export WAREHOUSE_DIR=gs://my-dw-bucket/iceberg
-export DATAPROC_BUCKET=gs://my-dataproc-bucket
 ```
 
 ## Steps
 
-Open cloud shell in your GCP console
+Open `cloud shell` in your GCP console and follow the steps to run bash shell scripts.
 
 ### 1. Setup service account for dataproc
 
@@ -64,7 +63,7 @@ Create a BigQuery connection for BigLake
 
 ```bash
 bq mk --connection --location=us-central1 --project_id=${PROJECT} \
-    --connection_type=CLOUD_RESOURCE ${CONNECTION}
+  --connection_type=CLOUD_RESOURCE ${CONNECTION}
 ```
 
 The BigQuery connection will create a service account which will be used to read data from GCS. You can check the service account using the bq tool:
@@ -96,41 +95,15 @@ git clone https://github.com/gddezero/gcp-samples.git
 cd biglake_iceberg_lab
 ```
 
-Upload the initialization action script to GCS
-
-```bash
-gsutil cp init_iceberg.sh gs://${DATAPROC_BUCKET}/init_scripts/
-```
-
 Create Dataproc Cluster
 
 ```bash
-gcloud dataproc clusters create ${CLUSTER_NAME} \
---project $PROJECT \
---single-node \
---scopes cloud-platform \
---region us-central1 \
---enable-component-gateway \
---no-address \
---subnet ${SUBNET} \
---bucket ${DATAPROC_BUCKET} \
---temp-bucket ${DATAPROC_BUCKET} \
---service-account ${SA}@${PROJECT}iam.gserviceaccount.com \
---master-machine-type n2d-highmem-4 \
---master-boot-disk-size 100 \
---master-boot-disk-type pd-balanced \
---image-version 2.1-debian11 \
---optional-components "Flink" \
---initialization-actions ${DATAPROC_BUCKET}/init_scripts/init_iceberg.sh
+./deploy_dataproc.sh
 ```
 
 ### 4. Start Flink SQL client
 
-```bash
-sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
-sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-```
+Navigate to the Dataproc console. Connect to the master node use SSH. Run bash scripts in the SSH session.
 
 ```bash
 cd /usr/lib/flink
