@@ -2,6 +2,7 @@
 
 FLINK_VERSION=1.15
 ICEBERG_VERSION=1.2.0
+SPARK_VERSION=3.3
 PROJECT=$(/usr/share/google/get_metadata_value attributes/PROJECT)
 DATAPROC_BUCKET=$(/usr/share/google/get_metadata_value attributes/DATAPROC_BUCKET)
 WAREHOUSE_DIR=$(/usr/share/google/get_metadata_value attributes/WAREHOUSE_DIR)
@@ -39,6 +40,49 @@ state.savepoints.dir: hdfs:///flink/savepoints
 parallelism.default: 1
 EOF
 
+# Create SQL file for Spark SQL to create iceberg catalog and table
+cat <<EOF >> create_catalog_table.sql
+CREATE NAMESPACE IF NOT EXISTS blms;
+CREATE DATABASE IF NOT EXISTS blms.iceberg_dataset;
+DROP TABLE IF EXISTS blms.iceberg_dataset.orders;
+
+CREATE TABLE IF NOT EXISTS blms.iceberg_dataset.orders (
+  id BIGINT,
+  user_id BIGINT,
+  product_id BIGINT,
+  price DECIMAL(10,2),
+  quantity INT,
+  region_id TINYINT,
+  status TINYINT COMMENT '0: created, 1: paid, 3: dispatched, 4: delivered, 5: cancelled, 6: fulfiled, 7: confirmed',
+  dt DATE,
+  created_at TIMESTAMP,
+  modified_at TIMESTAMP
+)
+USING iceberg 
+PARTITIONED BY (days(created_at), region_id)
+TBLPROPERTIES (
+  'format-version'='2',
+  'write.upsert.enabled'='true',
+  'write.parquet.compression-codec'='ZSTD',
+  'write.metadata.delete-after-commit.enabled'='true',
+  'write.metadata.previous-versions-max'='100',
+  'bq_table'='iceberg_dataset.orders', 
+  'bq_connection'='projects/${PROJECT}/locations/us-central1/connections/${CONNECTION}');
+EOF
+
+
+# Run Spark SQL
+spark-sql -f  create_catalog_table.sql \
+  --packages org.apache.iceberg:iceberg-spark-runtime-${SPARK_VERSION}_2.12:${ICEBERG_VERSION} \
+  --jars lib/biglake-catalog-iceberg${ICEBERG_VERSION}-0.1.0-with-dependencies.jar \
+  --conf spark.sql.iceberg.handle-timestamp-without-timezone=true \
+  --conf spark.sql.catalog.blms=org.apache.iceberg.spark.SparkCatalog \
+  --conf spark.sql.catalog.blms.catalog-impl=org.apache.iceberg.gcp.biglake.BigLakeCatalog \
+  --conf spark.sql.catalog.blms.gcp_project=${PROJECT} \
+  --conf spark.sql.catalog.blms.gcp_location=us-central1 \
+  --conf spark.sql.catalog.blms.blms_catalog=iceberg \
+  --conf spark.sql.catalog.blms.warehouse=${WAREHOUSE_DIR}
+
 # Create initialization SQL file for Flink
 cat <<EOF > init.sql
 CREATE CATALOG blms WITH (
@@ -66,9 +110,9 @@ CREATE TABLE IF NOT EXISTS orders (
   dt DATE,
   created_at TIMESTAMP(6),
   modified_at TIMESTAMP(6),
-  PRIMARY KEY(`id`, `dt`, `region_id`) NOT ENFORCED
+  PRIMARY KEY(\`id\`, \`dt\`, \`region_id\`) NOT ENFORCED
 ) 
-PARTITIONED BY (`dt`, `region_id`)
+PARTITIONED BY (\`dt\`, \`region_id\`)
 WITH (
   'format-version'='2',
   'write.upsert.enabled'='true',

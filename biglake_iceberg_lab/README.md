@@ -56,6 +56,18 @@ gcloud projects add-iam-policy-binding "${PROJECT}" \
 gcloud projects add-iam-policy-binding "${PROJECT}" \
 --role roles/bigquery.connectionAdmin \
 --member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding "${PROJECT}" \
+--role roles/bigquery.jobUser \
+--member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding "${PROJECT}" \
+--role roles/bigquery.dataEditor \
+--member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding "${PROJECT}" \
+--role roles/biglake.admin \
+--member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 ```
 
 ### 2. Create BigQuery connection for BigLake table

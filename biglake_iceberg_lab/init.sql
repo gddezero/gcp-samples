@@ -22,8 +22,7 @@ CREATE TABLE IF NOT EXISTS orders (
   status TINYINT COMMENT '0: created, 1: paid, 3: dispatched, 4: delivered, 5: cancelled, 6: fulfiled, 7: confirmed',
   dt DATE,
   created_at TIMESTAMP(6),
-  modified_at TIMESTAMP(6),
-  PRIMARY KEY(`id`, `dt`, `region_id`) NOT ENFORCED
+  modified_at TIMESTAMP(6)
 ) 
 PARTITIONED BY (`dt`, `region_id`)
 WITH (
