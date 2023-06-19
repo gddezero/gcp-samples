@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS blms.iceberg_dataset.orders (
   quantity INT,
   region_id TINYINT,
   status TINYINT COMMENT '0: created, 1: paid, 3: dispatched, 4: delivered, 5: cancelled, 6: fulfiled, 7: confirmed',
-  dt DATE,
   created_at TIMESTAMP,
   modified_at TIMESTAMP
 )
@@ -98,29 +97,6 @@ USE CATALOG blms;
 
 CREATE DATABASE IF NOT EXISTS iceberg_dataset;
 USE iceberg_dataset;
-
-CREATE TABLE IF NOT EXISTS orders (
-  id BIGINT,
-  user_id BIGINT,
-  product_id BIGINT,
-  price DECIMAL(10,2),
-  quantity INT,
-  region_id TINYINT,
-  status TINYINT COMMENT '0: created, 1: paid, 3: dispatched, 4: delivered, 5: cancelled, 6: fulfiled, 7: confirmed',
-  dt DATE,
-  created_at TIMESTAMP(6),
-  modified_at TIMESTAMP(6),
-  PRIMARY KEY(\`id\`, \`dt\`, \`region_id\`) NOT ENFORCED
-) 
-PARTITIONED BY (\`dt\`, \`region_id\`)
-WITH (
-  'format-version'='2',
-  'write.upsert.enabled'='true',
-  'write.parquet.compression-codec'='ZSTD',
-  'write.metadata.delete-after-commit.enabled'='true',
-  'write.metadata.previous-versions-max'='100',
-  'bq_table'='iceberg_dataset.orders', 
-  'bq_connection'='projects/${PROJECT}/locations/us-central1/connections/${CONNECTION}');
 
 CREATE OR REPLACE TEMPORARY TABLE orders_gen
 WITH (
