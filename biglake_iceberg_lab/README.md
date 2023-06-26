@@ -116,12 +116,13 @@ Create Dataproc Cluster
 
 ### 4. Start Flink SQL client
 
-Navigate to the Dataproc console. Connect to the master node use SSH. Run bash scripts in the SSH session.
+Navigate to the Dataproc console. Connect to the master node with SSH. Run bash scripts in the SSH session.
 
 ```bash
 cd /usr/lib/flink
 export HADOOP_CLASSPATH=`hadoop classpath`
-sudo bin/sql-client.sh embedded -s yarn-session
+sudo bin/yarn-session.sh -nm flink-dataproc -d
+sudo bin/sql-client.sh embedded -s yarn-session -i init.sql -j lib/flink-faker-0.5.3.jar
 ```
 
 ### 5. Start Flink job
@@ -129,7 +130,9 @@ sudo bin/sql-client.sh embedded -s yarn-session
 In the Flink SQL shell,
 
 ```sql
-INSERT INTO orders SELECT * FROM orders_gen;
+INSERT INTO blms.iceberg_dataset.orders SELECT * FROM blms.iceberg_dataset.orders_gen;
+INSERT INTO blms.iceberg_dataset.products SELECT * FROM blms.iceberg_dataset.products_gen;
+INSERT INTO blms.iceberg_dataset.users SELECT * FROM blms.iceberg_dataset.users_gen;
 ```
    
 ### 6. Verify Flink job is running
@@ -142,6 +145,12 @@ Now you can check the job status from the YARN Web UI. If the job is running cor
 
 ### 9. Create Materialized View for BigLake table
 
-### 10. [Optional] Visualize with Looker Studio
+### 10. [Optional] Schedule Spark jobs to compact Iceberg table
+
+```bash
+CALL blms.system.rewrite_data_files(table => 'iceberg_dataset.orders', strategy => 'sort', sort_order => 'zorder(user_id,id)');
+CALL blms.system.rewrite_data_files(table => 'iceberg_dataset.products', strategy => 'sort', sort_order => 'zorder(id,created_by)');
+CALL blms.system.rewrite_data_files(table => 'iceberg_dataset.users', strategy => 'sort', sort_order => 'zorder(id,email)');
+```
 
 ### Clean up
