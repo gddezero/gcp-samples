@@ -21,7 +21,6 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
 --image-version 2.1-debian11 \
 --optional-components "Flink" \
 --initialization-actions gs://${DATAPROC_BUCKET}/init_scripts/init_iceberg.sh \
---metadata flink-start-yarn-session=true \
 --metadata DATAPROC_BUCKET=${DATAPROC_BUCKET} \
 --metadata WAREHOUSE_DIR=${WAREHOUSE_DIR} \
 --metadata CONNECTION=${CONNECTION} \

@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS blms.iceberg_dataset.users (
 USING iceberg 
 TBLPROPERTIES (
   'format-version'='2',
+  'write.object-storage.enabled'='true',
   'write.parquet.compression-codec'='ZSTD',
   'write.metadata.delete-after-commit.enabled'='true',
   'write.metadata.previous-versions-max'='100',
@@ -102,6 +103,7 @@ CREATE TABLE IF NOT EXISTS blms.iceberg_dataset.products (
 USING iceberg 
 TBLPROPERTIES (
   'format-version'='2',
+  'write.object-storage.enabled'='true',
   'write.parquet.compression-codec'='ZSTD',
   'write.metadata.delete-after-commit.enabled'='true',
   'write.metadata.previous-versions-max'='100',
