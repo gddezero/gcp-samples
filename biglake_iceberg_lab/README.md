@@ -265,9 +265,73 @@ FROM `<PROJECT_ID>.iceberg_dataset.users` LIMIT 10;
 
 #### Data masking
 
+Column level access control blocks user from accessing specific columns. User will get error message when accessing columns without permission. Data masking allows user to query columns and get masked data without raising errors. In this lab, we will demo data masking on the **email** column of the **users** table.
+
+1. Create data masking rule.
+   Navigate to the detailed page of policy tag of **Confidentiality Levels**. Click the tag **C2** and then click **MANAGE DATA POLICIES**.
+
+<img src="img/create_data_masking_policy.png" width="40%" />
+
+***Figure 8-8***
+
+Enter a **Policy Name**, select **Email Mask** as Masking Rule, and enter the google cloud account you want to apply the data masking rule.
+
+<img src="img/create_data_masking_policy2.png" width="40%" />
+
+***Figure 8-9***
+
+2. Assign data masking rule to BigLake table
+
+Now open the BigQuery SQL workspace. Navigate to the users table. Click **EDIT SCHEMA**
+
+<img src="img/assign_tag_to_table.png" width="40%" />
+
+***Figure 8-10***
+
+Select the **email** column. Then click **ADD POLICY TAG**. Select **C2** and save the changes.
+
+<img src="img/assign_data_masking_to_table.png" width="40%" />
+
+***Figure 8-11***
+
+3. Query table
+
+You can switch to the user account that is assigned with data masking rule in step 1. Try the SQL and you can get results without error.
+
+```sql
+SELECT email FROM `<PROJECT_ID>.iceberg_dataset.users` LIMIT 10;
+```
+You should find the email like **XXXX@domain.com**. If you swith to an account without data masking policy assigned, you can see the full email address.
+
 #### Row-level security
 
+Row level access control is particularly useful when you want to limit access of rows according to a specific attribute of the user. In this lab we will create row level policy to restric user from accessing orders table based on the user's region.
 
+Create a policy to allow the a user to access rows of APAC region.
+```sql
+CREATE OR REPLACE ROW ACCESS POLICY apac_filter
+ON `<PROJECT_ID>.iceberg_dataset.orders`
+GRANT TO ("user:<bq user>")
+FILTER USING (region = "APAC");
+```
+
+Create a policy to allow admin user to have full acess of all rows by **FILTER USING (TRUE)** 
+```sql
+CREATE OR REPLACE ROW ACCESS POLICY all_access 
+ON `<PROJECT_ID>.iceberg_dataset.orders`
+GRANT TO ("user:<admin user>")
+FILTER USING (TRUE);
+```
+
+Now switch to the BQ user and try the following query. You should see no results returned.
+```sql
+SELECT * FROM `forrest-test-project-333203.iceberg_dataset.orders` 
+WHERE DATE(created_at) >= current_date()
+AND region = 'US'
+LIMIT 10;
+```
+
+If you switch to the BQ admin user and run the query, You should see results including all regions returned.
 ### 9. Run Iceberg maintenence jobs with Spark
 
 ```bash
@@ -302,5 +366,3 @@ CALL blms.system.rewrite_manifests('iceberg_dataset.orders');
 CALL blms.system.rewrite_data_files(table => 'iceberg_dataset.products', strategy => 'sort', sort_order => 'zorder(id,created_by)');
 CALL blms.system.rewrite_data_files(table => 'iceberg_dataset.users', strategy => 'sort', sort_order => 'zorder(id,email)');
 ```
-
-### Clean up
