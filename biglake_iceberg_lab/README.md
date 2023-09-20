@@ -14,7 +14,7 @@ Components used in this lab:
 ## Prerequisitions
 
 1. Create a GCP project
-2. Setup vpc, network, firwall rule in your GCP project in **us-central1**
+2. Setup vpc, network, NAT, firwall rule in your GCP project in **us-central1**
 3. You need permission of BigQuery admin, Dataproc admin and Storage Admin
 4. Create GCS buckets for dataproc staging and iceberg table
 5. Enable Goolge Cloud services by running the following gcloud commond in cloud shell:
