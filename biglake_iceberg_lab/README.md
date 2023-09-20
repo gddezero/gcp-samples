@@ -17,6 +17,10 @@ Components used in this lab:
 2. Setup vpc, network, firwall rule in your GCP project in **us-central1**
 3. You need permission of BigQuery admin, Dataproc admin and Storage Admin
 4. Create GCS buckets for dataproc staging and iceberg table
+5. Enable Goolge Cloud services by running the following gcloud commond in cloud shell:
+   ```shell
+   gcloud services enable biglake.googleapis.com
+   ```
 
 ## Environment variables
 
@@ -70,7 +74,13 @@ gcloud projects add-iam-policy-binding "${PROJECT}" \
 --member "serviceAccount:${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 ```
 
-### 2. Create BigQuery connection for BigLake table
+### 2. Create BigQuery dataset connection for BigLake table
+
+Create a BigQuery dataset
+
+```bash
+bq mk -d --data_location=us-central1 --project_id=${PROJECT} iceberg_dataset 
+```
 
 Create a BigQuery connection for BigLake
 
@@ -145,21 +155,21 @@ Now you can open the BQ SQL workspace in GCP console. You can find the iceberg_d
 
 ```sql
 -- Explore products table
-SELECT * FROM `<PROJECT_ID>..iceberg_dataset.products` LIMIT 10;
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.products` LIMIT 10;
 
-SELECT * FROM `<PROJECT_ID>..iceberg_dataset.products` 
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.products` 
 WHERE id = 48801234
 LIMIT 10;
 
 -- Explore users table
-SELECT * FROM `<PROJECT_ID>..iceberg_dataset.users` LIMIT 10;
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.users` LIMIT 10;
 
-SELECT * FROM `<PROJECT_ID>..iceberg_dataset.users` 
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.users` 
 WHERE email = 'olen.macejkovic@hotmail.com'
 LIMIT 10;
 
 -- Explore orders table
-SELECT * FROM `<PROJECT_ID>..iceberg_dataset.orders` 
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.orders` 
 WHERE DATE(created_at) >= current_date()
 LIMIT 10;
 
@@ -325,7 +335,7 @@ FILTER USING (TRUE);
 
 Now switch to the BQ user and try the following query. You should see no results returned.
 ```sql
-SELECT * FROM `forrest-test-project-333203.iceberg_dataset.orders` 
+SELECT * FROM `<PROJECT_ID>.iceberg_dataset.orders` 
 WHERE DATE(created_at) >= current_date()
 AND region = 'US'
 LIMIT 10;
