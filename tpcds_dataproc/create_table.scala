@@ -13,16 +13,6 @@ scaleFactor = scaleFactor,
 useDoubleForDecimal = true, 
 useStringForDate = true)
 
-tables.genData(
-location = rootDir,
-format = format,
-overwrite = true,
-partitionTables = true, 
-clusterByPartitionColumns = true, 
-filterOutNullPartitionValues = true, 
-tableFilter = "", 
-numPartitions = 100)
-
 sql(s"create database $databaseName") 
 
 tables.createExternalTables(rootDir, 
@@ -31,4 +21,4 @@ databaseName,
 overwrite = true, 
 discoverPartitions = true)
 
-tables.analyzeTables(databaseName, analyzeColumns = true)
+// tables.analyzeTables(databaseName, analyzeColumns = true)

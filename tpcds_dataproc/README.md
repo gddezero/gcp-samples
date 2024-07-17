@@ -16,7 +16,7 @@ export REGION=us-central1
 export NETWORK=bigdata-network
 export SUBNET=dataflow-network
 export DATAPROC_BUCKET=forrest-dataproc-bucket
-export DW_BUCKET=forrest-bigdata-bucket
+export ROOT_DIR=gs://forrest-tpcds/tpcds1000
 export DPMS_NAME=hms
 gcloud config set project ${PROJECT}
 ```
@@ -63,7 +63,7 @@ gcloud dataproc clusters create ${CLUSTER_NAME} \
   --secondary-worker-boot-disk-type pd-balanced \
   --worker-boot-disk-size 300GB \
   --initialization-actions gs://${DATAPROC_BUCKET}/bootstrap/tpcds_bootstrap.sh \
-  --metadata DW_BUCKET=${DW_BUCKET} \
+  --metadata ROOT_DIR=${ROOT_DIR} \
   --properties "hive:yarn.log-aggregation-enable=true" \
   --properties "spark:spark.checkpoint.compress=true" \
   --properties "spark:spark.eventLog.compress=true" \
@@ -105,4 +105,18 @@ spark-shell \
   --num-executors 10 \
   --conf spark.dynamicAllocation.enabled=false \
   -I tpcds.scala
+```
+
+## Create table for new dataproc cluster
+
+When you terminated the Dataproc cluster and Hive metastore, the data files still remains on Storage. You can deploy a new cluster to run the TPC-DS benchmark. Run the following script to create tables before starting the TPC-DS benchmark. Make sure to change the variables in `create_table.scala` including: rootDir, dsdgenDir, scaleFactor, format, databaseName
+
+```bash
+cd /opt/gcp-samples/tpcds_dataproc
+spark-shell \
+  --jars spark-sql-perf_2.12-0.5.1-SNAPSHOT.jar \
+  --driver-memory 8192M \
+  --deploy-mode client \
+  --master yarn \
+  -I create_table.scala
 ```
