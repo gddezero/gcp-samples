@@ -1,6 +1,6 @@
 # Initialization script for intstalling Kyuubi on Dataproc
 
-This is a initialization script for intstalling Kyuubi on Dataproc. Follow the steps to 
+This is a initialization script for intstalling Kyuubi on Dataproc. Follow the steps to deploy a dataproc cluster with Kyuubi installed.
 
 1. Upload `init_kyuubi.sh` to the GCS bucket
 2. Deploy dataproc cluster with the following parameters:
