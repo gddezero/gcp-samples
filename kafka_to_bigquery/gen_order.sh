@@ -1,4 +1,5 @@
-IP=$1
+IP=$(ip -o route get to 8.8.8.8 | sed -n "s/.*src \([0-9.]\+\).*/\1/p")
+
 /opt/kafka/bin/kafka-topics.sh --bootstrap-server ${IP}:9092 --create --topic orderbook
 /opt/kafka/bin/kafka-topics.sh --bootstrap-server ${IP}:9092 --create --topic orderbook_eth
 
