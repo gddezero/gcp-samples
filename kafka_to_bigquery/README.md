@@ -69,7 +69,7 @@ gcloud compute instances create kafka-vm \
   export IP=$(ip -o route get to 8.8.8.8 | sed -n "s/.*src \([0-9.]\+\).*/\1/p")
   echo ${IP}
   docker-compose up -d
-  docker run -v /gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm bitnami/kafka:2.3.1 bash /script/gen_order.sh
+  docker run -v /gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm apache/kafka bash -c "/script/gen_order.sh ${IP}"
   '
 ```
 
@@ -139,14 +139,32 @@ partition by dt"
 ```bash
 JOB_ID=kafka-to-bq-$(date +%s)
 gcloud dataflow flex-template run ${JOB_ID} \
-    --template-file-gcs-location="gs://dataflow-templates-us-central1/latest/flex/Kafka_to_BigQuery" \
-    --parameters=^#^bootstrapServers=$KAFKA_IP:9093#outputTableSpec=${PROJECT}:crypto.orderbook#inputTopics=orderbook,orderbook_okx#javascriptTextTransformGcsPath=${GCS_DATAFLOW}/scripts/simple_udf.js#javascriptTextTransformFunctionName=transform#useStorageWriteApi=true#numStorageWriteApiStreams=1#storageWriteApiTriggeringFrequencySec=5#stagingLocation=${GCS_DATAFLOW}/staging#maxNumWorkers=10#numberOfWorkerHarnessThreads=1#saveHeapDumpsToGcsPath=${GCS_DATAFLOW}/dump#serviceAccount=${GSA_FULL}#workerMachineType=n1-standard-1#usePublicIps=false \
-    --region=${REGION} \
-    --project=${PROJECT} \
-    --temp-location=${GCS_DATAFLOW}/temp \
-    --network=${NETWORK} \
-    --subnetwork=regions/${REGION}/subnetworks/${SUBNET} \
-    --enable-streaming-engine
+    --template-file-gcs-location="gs://dataflow-templates-us-central1/latest/flex/Kafka_to_BigQuery_Flex" \
+    --region ${REGION} \
+    --project ${PROJECT} \
+    --temp-location ${GCS_DATAFLOW}/temp \
+    --network ${NETWORK} \
+    --subnetwork regions/${REGION}/subnetworks/${SUBNET} \
+    --enable-streaming-engine \
+    --worker-machine-type n1-standard-1 \
+    --disable-public-ips \
+    --service-account-email ${GSA_FULL} \
+    --parameters "readBootstrapServerAndTopic=$KAFKA_IP:9092;orderbook" \
+    --parameters "kafkaReadAuthenticationMode=NONE" \
+    --parameters "writeMode=SINGLE_TABLE_NAME" \
+    --parameters "messageFormat=JSON" \
+    --parameters "useBigQueryDLQ=false" \
+    --parameters "outputTableSpec=${PROJECT}:crypto.orderbook" \
+    --parameters "javascriptTextTransformGcsPath=${GCS_DATAFLOW}/scripts/simple_udf.js" \
+    --parameters "javascriptTextTransformFunctionName=transform" \
+    --parameters "numStorageWriteApiStreams=1" \
+    --parameters "storageWriteApiTriggeringFrequencySec=5" \
+    --parameters "stagingLocation=${GCS_DATAFLOW}/staging" \
+    --parameters "maxNumWorkers=10" \
+    --parameters "saveHeapDumpsToGcsPath=${GCS_DATAFLOW}/dump" \
+    --parameters "kafkaReadOffset=earliest" \
+    --parameters "enableCommitOffsets=true" \
+    --parameters "consumerGroupId=dataflow-consumer"
 ```
 
 ## Query data
