@@ -69,7 +69,7 @@ gcloud compute instances create kafka-vm \
   export IP=$(ip -o route get to 8.8.8.8 | sed -n "s/.*src \([0-9.]\+\).*/\1/p")
   echo ${IP}
   docker-compose up -d
-  docker run -v /gcp-samples/kafka_to_bigquery:/script -w /script -it --network=host --rm apache/kafka bash -c "/script/gen_order.sh"
+  docker run -d -v /gcp-samples/kafka_to_bigquery:/script -w /script --network=host --rm apache/kafka bash -c "/script/gen_order.sh"
   '
 ```
 
